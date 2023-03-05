@@ -1,10 +1,10 @@
 ---
-title: "Analise Estatistica PNAD-IBGE 2015"
+title: "Análise Estatística PNAD-IBGE 2015"
 Author: "Vitor Renato Michelucci - RA: 622.101.058"
 output: html_document
 ---
 
-Este trabalho tem por objetivo realizar uma análise estística de dados da PNAD - Pesquisa Nacional por Amostra de Domicílios de 2015, realizada pelo IBGE.
+Este trabalho tem por objetivo realizar uma análise estatística de dados da PNAD - Pesquisa Nacional por Amostra de Domicílios de 2015, realizada pelo IBGE.
 
 ## Carregando os pacotes:
 
