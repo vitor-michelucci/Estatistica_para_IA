@@ -1,6 +1,6 @@
 Análise estatística da PNAD - IBGE de 2015 com R.
 
-- Estatística decritiva;
+- Estatística descritiva;
 - Distribuição de frequência;
 - Histograma;
 - Boxplot;
