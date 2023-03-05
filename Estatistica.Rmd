@@ -1,0 +1,431 @@
+---
+title: "Analise Estatistica PNAD-IBGE 2015"
+Author: "Vitor Renato Michelucci - RA: 622.101.058"
+output: html_document
+---
+
+Este trabalho tem por objetivo realizar uma análise estística de dados da PNAD - Pesquisa Nacional por Amostra de Domicílios de 2015, realizada pelo IBGE.
+
+## Carregando os pacotes:
+
+```{r}
+library(glue)
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+library(hrbrthemes)
+library(ggthemes)
+library(DescTools)
+library(nortest)
+```
+
+## Carregando a base de dados:
+
+```{r}
+dados = read.csv('dados.csv')
+```
+
+## Visualiazando os dados:
+
+```{r}
+head(dados, 10)
+```
+
+## Explorando a base de dados:
+
+Estatística descritiva das variáveis quantitativas: 
+
+```{r}
+summary(dados [c(3, 5, 6, 7)])
+```
+
+## Distribuição de Frequência:
+
+### UF 
+
+```{r}
+uf = c('Rondônia', 'Acre', 'Amazonas', 'Roraima', 'Pará', 'Amapá',
+       'Tocantins', 'Maranhão', 'Piauí', 'Ceará', 'Rio Grande do Norte', 'Paraíba',
+        'Pernambuco', 'Alagoas', 'Sergipe', 'Bahia', 'Minas Gerais', 'Espírito Santo',
+        'Rio de Janeiro', 'São Paulo', 'Paraná', 'Santa Catarina', 'Rio Grande do Sul', 'Mato Grosso do Sul',
+        'Mato Grosso', 'Goiás', 'Distrito Federal')
+
+dist_perct_uf = data.frame(cbind("Frequency"=table(dados$UF), "Percent"=prop.table(table(dados$UF)) * 100))
+row.names(dist_perct_uf) = uf
+dist_perct_uf
+```
+
+### Sexo:
+
+```{r}
+freq_perct_sexo = data.frame(cbind("Frequência"=table(dados$Sexo), "Percentual"=prop.table(table(dados$Sexo)) * 100))
+row.names(freq_perct_sexo) = c("Masculino", "Feminino")
+freq_perct_sexo
+```
+### Cor:
+
+```{r}
+freq_perct_cor = data.frame(cbind("Frequency"=table(dados$Cor), "Percent"=prop.table(table(dados$Cor)) * 100))
+row.names(freq_perct_cor) = c("Indígena", "Branca", "Preta", "Amarela", "Parda")
+freq_perct_cor
+```
+
+### Anos de Estudo:
+
+```{r}
+n_estudo = c('Sem instrução e menos de 1 ano',
+'1 ano',
+'2 anos',
+'3 anos',
+'4 anos',
+'5 anos',
+'6 anos',
+'7 anos',
+'8 anos',
+'9 anos',
+'10 anos',
+'11 anos',
+'12 anos',
+'13 anos',
+'14 anos',
+'15 anos ou mais',
+'Não determinados')
+
+freq_perct_ano_estudo = data.frame(cbind("Frequency"=table(dados$Anos.de.Estudo), "Percent"=prop.table(table(dados$Anos.de.Estudo)) * 100))
+row.names(freq_perct_ano_estudo) = n_estudo
+freq_perct_ano_estudo
+```
+
+### Renda por faixa:
+
+```{r}
+n = nrow(dados)
+k = round(k  <- 1 + ((10/3) * log10(n)))
+
+glue("Number of classes -: {k}")
+
+labels <- c(
+    '      0.00 |—|  11,764.70', 
+    ' 11,764.70  —|  23,529.40', 
+    ' 23,529.40  —|  35,294.10', 
+    ' 35,294.10  —|  47,058.80', 
+    ' 47,058.80  —|  58,823.50', 
+    ' 58,823.50  —|  70,588.20', 
+    ' 70,588.20  —|  82,352.90', 
+    ' 82,352.90  —|  94,117.60', 
+    ' 94,117.60  —| 105,882.00', 
+    '105,882.00  —| 117,647.00', 
+    '117,647.00  —| 129,412.00', 
+    '129,412.00  —| 141,176.00', 
+    '141,176.00  —| 152,941.00', 
+    '152,941.00  —| 164,706.00', 
+    '164,706.00  —| 176,471.00', 
+    '176,471.00  —| 188,235.00', 
+    '188,235.00  —| 200,000.00')
+
+# Criando a tabela de frequência e percentual
+cbind("Frequency"=table(cut(x=dados$Renda,
+      breaks=k,
+      labels=labels,
+      include.lowest=T)),
+     "Percent (%)"=prop.table(table(cut(x=dados$Renda,
+      breaks=k,
+      labels=labels,
+      include.lowest=T))) * 100)
+
+```
+
+## Histograma:
+
+### Altura:
+
+```{r fig.width = 14, fig.height = 6}
+options(repr.plot.width=14, repr.plot.height=6)
+a<-ggplot(dados, aes(x=Altura))+
+    geom_histogram(bins=50, col='black', fill='yellow', alpha=.7, size=1.2)+
+    theme_economist()+
+    ggtitle("Altura Histogram")+
+    ylab("Frequency")+
+    theme(plot.title = element_text(size=21, hjust=.5),
+          axis.title.y = element_text(size=21, vjust=2),
+          axis.title.x = element_text(size=21, vjust=-1),
+          axis.text.x = element_text(size=20),
+          axis.text.y = element_text(size=20)
+         )
+
+b<-ggplot(dados, aes(x=Altura, y=..density..))+
+    geom_density(col='black', fill='yellow', alpha=.7, size=1.2)+
+    theme_economist()+
+    ggtitle("Altura Density")+
+    ylab("Density")+
+    theme(plot.title = element_text(size=21, hjust=.5),
+          axis.title.y = element_text(size=21, vjust=2),
+          axis.title.x = element_text(size=21, vjust=-1),
+          axis.text.x = element_text(size=20),
+          axis.text.y = element_text(size=20))
+plot_grid(a, b, nrow=1, ncol=2)
+```
+
+### Renda:
+
+```{r fig.width = 14, fig.height = 6}
+options(repr.plot.width=14, repr.plot.height=6)
+a<-ggplot(dados, aes(x=Renda))+
+    geom_histogram(bins=50, col='black', fill='green', alpha=.7, size=1.1)+
+    theme_economist()+
+    ggtitle("Renda Histogram")+
+    ylab("Frequency")+
+    theme(plot.title = element_text(size=21, hjust=.5),
+          axis.title.y = element_text(size=21, vjust=2),
+          axis.title.x = element_text(size=21, vjust=-1),
+          axis.text.x = element_text(size=20),
+          axis.text.y = element_text(size=20)
+         )
+
+b<-ggplot(dados, aes(x=Renda, y=..density..))+
+    geom_density(col='black', fill='green', alpha=.7, size=1)+
+    theme_economist()+
+    ggtitle("Renda Histogram")+
+    ylab("Density")+
+    theme(plot.title = element_text(size=21, hjust=.5),
+          axis.title.y = element_text(size=21, vjust=2),
+          axis.title.x = element_text(size=21, vjust=-1),
+          axis.text.x = element_text(size=20),
+          axis.text.y = element_text(size=20))
+plot_grid(a, b, nrow=1, ncol=2)
+```
+
+### Idade:
+
+```{r fig.width = 14, fig.height = 6}
+options(repr.plot.width=14, repr.plot.height=6)
+a<-ggplot(dados, aes(x=Idade))+
+    geom_histogram(bins=50, col='black', fill='#00BFFF', alpha=.7, size=1.1)+
+    theme_economist()+
+    ggtitle("Idade Histogram")+
+    ylab("Frequency")+
+    theme(plot.title = element_text(size=21, hjust=.5),
+          axis.title.y = element_text(size=21, vjust=2),
+          axis.title.x = element_text(size=21, vjust=-1),
+          axis.text.x = element_text(size=20),
+          axis.text.y = element_text(size=20)
+         )
+
+b<-ggplot(dados, aes(x=Idade, y=..density..))+
+    geom_density(col='black', fill='#00BFFF', alpha=.7, size=1)+
+    theme_economist()+
+    ggtitle("Idade Density")+
+    ylab("Density")+
+    theme(plot.title = element_text(size=21, hjust=.5),
+          axis.title.y = element_text(size=21, vjust=2),
+          axis.title.x = element_text(size=21, vjust=-1),
+          axis.text.x = element_text(size=20),
+          axis.text.y = element_text(size=20))
+plot_grid(a, b, nrow=1, ncol=2)
+```
+
+### Anos de Estudo:
+
+```{r fig.width = 14, fig.height = 6}
+options(repr.plot.width=14, repr.plot.height=6)
+a<-ggplot(dados, aes(x=Anos.de.Estudo))+
+    geom_histogram(bins=50, col='black', fill='#00BFFF', alpha=.7, size=1.1)+
+    theme_economist()+
+    ggtitle("Anos de Estudo Histogram")+
+    ylab("Frequency")+
+    theme(plot.title = element_text(size=21, hjust=.5),
+          axis.title.y = element_text(size=21, vjust=2),
+          axis.title.x = element_text(size=21, vjust=-1),
+          axis.text.x = element_text(size=20),
+          axis.text.y = element_text(size=20)
+         )
+
+b<-ggplot(dados, aes(x=Anos.de.Estudo, y=..density..))+
+    geom_density(col='black', fill='#00BFFF', alpha=.7, size=1)+
+    theme_economist()+
+    ggtitle("Anos de Estudo Density")+
+    ylab("Density")+
+    theme(plot.title = element_text(size=21, hjust=.5),
+          axis.title.y = element_text(size=21, vjust=2),
+          axis.title.x = element_text(size=21, vjust=-1),
+          axis.text.x = element_text(size=20),
+          axis.text.y = element_text(size=20))
+plot_grid(a, b, nrow=1, ncol=2)
+```
+
+## Comparativo Média X Mediana X Moda:
+
+### Renda:
+
+```{r fig.width = 14, fig.height = 6}
+df = data.frame(Renda=dados$Renda[dados$Renda < 10000])
+options(repr.plot.width=12, repr.plot.height=6)
+ggplot(df, aes(x=Renda, y=..density..))+
+    geom_density(fill="green", color="black", linetype="dashed", alpha=.8)+
+    theme_economist()+
+    geom_vline(aes(xintercept=mean(dados$Renda)),
+            color="black", linetype="dashed", size=1.5)+
+    geom_vline(aes(xintercept=median(dados$Renda)), color="blue", size=1.5, linetype="dashed")+
+    geom_vline(aes(xintercept=788), color="red", size=1.5, linetype="dashed")+
+
+    annotate("text", label="Mean = 2000.38", x = 3400, y = 0.00085, color = "black", size=7)+
+    annotate("text", label="Median = 1200", x=4000, y=0.00072, color="blue", size=7)+
+    annotate("text", label="Mode = 788", x=5000, y=0.00054, color="red", size=7)+
+    ggtitle("Density Renda < 10000")+
+    theme(plot.background=element_rect(fill="#F0E68C", color="black"),
+          plot.title=element_text(size=25, hjust=.5, vjust=2),
+          axis.title.x=element_text(size=23, vjus=-1),
+          axis.title.y=element_text(size=23, vjust=2),
+          axis.text.x=element_text(size=20),
+          axis.text.y=element_text(size=20))
+```
+
+### Idade:
+
+```{r fig.width = 14, fig.height = 6}
+options(repr.plot.width=12, repr.plot.height=6)
+ggplot(dados, aes(x=Idade, y=..density..))+
+    geom_density(fill="#00BFFF", color="black", linetype="dashed", alpha=.8)+
+    theme_economist()+
+    geom_vline(aes(xintercept=mean(Idade)),
+            color="black", linetype="dashed", size=1.5)+
+    geom_vline(aes(xintercept=median(Idade)), color="blue", size=1.5, linetype="dashed")+
+    geom_vline(aes(xintercept=40), color="red", size=1.5, linetype="dashed")+
+
+    annotate("text", label="Mean=44.07", x=60, y=.032, size=7, color="black")+
+    annotate("text", label="Median=43",  x=67, y=.028, size=7, color="blue")+
+    annotate("text", label="Mode=40", x=74, y=.024, size=7, color="red")+
+    ggtitle("Density - Idade")+
+    theme(plot.background=element_rect(fill="#B0C4DE", color="black"),
+          plot.title=element_text(size=25, hjust=.5, vjust=2),
+          axis.title.x=element_text(size=23, vjus=-1),
+          axis.title.y=element_text(size=23, vjust=2),
+          axis.text.x=element_text(size=20),
+          axis.text.y=element_text(size=20))
+```
+
+### Altura:
+
+```{r fig.width = 14, fig.height = 6}
+options(repr.plot.width=12, repr.plot.height=6)
+ggplot(dados, aes(x=Altura, y=..density..))+
+    geom_density(fill="yellow", color="black", alpha=.8, linetype="dashed")+
+    theme_economist()+
+    geom_vline(aes(xintercept=mean(Altura)), color="black", linetype="dashed", size=1.5)+
+    geom_vline(aes(xintercept=median(Altura)), color="blue", size=1.5, linetype="dashed")+
+
+    annotate("text", label="Mean=1.7", x=1.8, y=4.5, size=7, color="black")+
+    annotate("text", label="Median=1.7",  x=1.9, y=3.5, size=7, color="blue")+
+
+    ggtitle("Density - Altura")+
+    theme(plot.background=element_rect(fill="#88CEEB", color="black"),
+          plot.title=element_text(size=25, hjust=.5, vjust=2),
+          axis.title.x=element_text(size=23, vjus=-1),
+          axis.title.y=element_text(size=23, vjust=2),
+          axis.text.x=element_text(size=20),
+          axis.text.y=element_text(size=20))
+```
+
+## Boxplot:
+
+```{r fig.width = 14, fig.height = 6}
+tema=theme(plot.background=element_rect(fill="#F0FFFF", color="black"),
+          plot.title=element_text(hjust=.5, size=20),
+          axis.title.x=element_text(size=20),
+          axis.text.x=element_text(size=20),
+          axis.text.y=element_text(size=20))
+options(repr.plot.width=20, repr.plot.height=10)
+a<-ggplot(data = dados, aes(x="Altura", y = Altura)) + 
+    stat_boxplot(geom ='errorbar', width = 0.4, color="black", size=1) + 
+    geom_boxplot(fill = '#FF7F50', color="black", size=1) + 
+    theme_economist()+
+    coord_flip() +
+    ylab("Metros") + 
+    xlab("")+
+    ggtitle("Boxplot - Altura") + 
+    tema
+
+b<-ggplot(data = dados, aes(x="Idade", y = Idade)) + 
+    stat_boxplot(geom ='errorbar', width = 0.4, color="black", size=1) + 
+    geom_boxplot(fill = '#32CD32', color="black", size=1) + 
+    theme_economist()+
+    coord_flip() +
+    ylab("Anos") + 
+    xlab("")+
+    ggtitle("Boxplot - Idade") + 
+    tema
+
+c<-ggplot(data = dados, aes(x="Anos de Estudo", y = Anos.de.Estudo)) + 
+    stat_boxplot(geom ='errorbar', width = 0.4, color="black", size=1) + 
+    geom_boxplot(fill = '#DAA520', color="black", size=1) +
+    theme_economist()+
+    coord_flip() +
+    ylab("Anos") + 
+    xlab("")+
+    ggtitle("Boxplot - Anos de Estudo") + 
+    tema
+
+d<-ggplot(data = dados, aes(x="Renda", y = Renda)) + 
+    stat_boxplot(geom ='errorbar', width = 0.4, color="black", size=1) + 
+    geom_boxplot(fill = '#FF00FF', color="black", size=1) +
+    theme_economist()+
+    coord_flip() +
+    ylab("Reais") + 
+    xlab("")+
+    ggtitle("Boxplot - Renda") + 
+    tema
+
+plot_grid(a, b, c, d, nrow=2, ncol=2)
+
+```
+
+## Teste de normalidade Anderson-Darling:
+
+Optou-se pela utilização do teste de normalidade Anderson-Darling uma vez que a amostra sob estudo possui mais de 5.000 observações, inviablizando o uso do teste Shapiro- Wilk.
+
+### Idade:
+
+```{r}
+ad.test(dados$Idade)
+```
+
+### Altura:
+
+```{r}
+ad.test(dados$Altura)
+```
+
+### Renda:
+
+```{r}
+ad.test(dados$Renda)
+```
+
+### Anos de Estudo:
+
+```{r}
+ad.test(dados$Anos.de.Estudo)
+```
+
+## Teste T:
+
+Realizando o teste T para a única variável que apresentou distribuição normal.
+
+Para fins de estudo, utilizou-se como valor de referência a altura de 1.80m.
+
+### Altura:
+
+```{r}
+t.test(dados$Altura, mu = 1.80)
+```
+
+### Considerações:
+
+A hipótese nula foi rejeitada para o nível de confiança de 95%, de forma que pode-se interpretar que o valor de referência utilizado é estatisticamente diferente da média amostral.
+
+
+### Fim
+
+
+
+
